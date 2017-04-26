@@ -2,7 +2,7 @@
 #          File: test.py
 #        Author: Andre Brener
 #       Created: 22 Apr 2017
-# Last Modified: 24 Apr 2017
+# Last Modified: 26 Apr 2017
 #   Description: description
 # =============================================================================
 import json
@@ -91,26 +91,19 @@ def get_fixture(connection, headers, url, days_past=30, days_next=30):
     return df
 
 
-def show_results(connection, headers, comp_df, chosen_teams):
-    for comp_id in comp_df['id']:
+def get_teams_fixture(connection, headers, comp_df, chosen_teams):
+    df_list = []
+    for comp_id in comp_df['id'].unique():
         comp_name = comp_df[comp_df['id'] == comp_id]['caption'].iloc[0]
         url = '/v1/competitions/{}/fixtures'.format(comp_id)
         fixture_df = get_fixture(
             connection, headers, url, days_next=4, days_past=3)
         fixture_df = fixture_df[(fixture_df['homeTeamName'].isin(
             chosen_teams)) | (fixture_df['awayTeamName'].isin(chosen_teams))]
-        if not fixture_df.empty:
-            print('\n', comp_name, '\n')
-            for row in range(fixture_df.shape[0]):
-                d = fixture_df.iloc[row]
-                string_date = d['date'].strftime('%a, %b %d  %H.%M hs')
-                hg = ''
-                ag = ''
-                if d['away_goals'] != '-':
-                    hg = int(d['home_goals'])
-                    ag = int(d['away_goals'])
-                print('{}  {}    {} {} - {} {}'.format(string_date, d[
-                    'status'], d['homeTeamName'], hg, ag, d['awayTeamName']))
+        fixture_df['competition'] = comp_name
+        df_list.append(fixture_df)
+    final_df = pd.concat(df_list)
+    return final_df
 
 
 if __name__ == '__main__':
@@ -119,18 +112,24 @@ if __name__ == '__main__':
     key = data_file.read().strip()
     connection = http.client.HTTPConnection('api.football-data.org')
     headers = {'X-Auth-Token': key, 'X-Response-Control': 'full'}
-    team = 5
-    team_url = '/v1/teams/{}/fixtures'.format(team)
-    # get_fixture(connection, headers, url)
-
-    comp_url = '/v1/competitions/'
 
     leagues = pd.read_csv('preferred_leagues.csv')
     teams = pd.read_csv('preferred_teams.csv')
-
-    # print(leagues.head())
-
-    comps = leagues['id'].unique()
     team_names = teams['name'].unique()
 
-    show_results(connection, headers, leagues, team_names)
+    # print(fixtures)
+    fixtures = get_teams_fixture(connection, headers, leagues, team_names)
+
+    for comp_name in fixtures['competition'].unique():
+        print('\n', comp_name, '\n')
+        filter_df = fixtures[fixtures['competition'] == comp_name]
+        for row in range(filter_df.shape[0]):
+            d = filter_df.iloc[row]
+            string_date = d['date'].strftime('%a, %b %d  %H.%M hs')
+            hg = ''
+            ag = ''
+            if d['away_goals'] != '-':
+                hg = int(d['home_goals'])
+                ag = int(d['away_goals'])
+            print('{}  {}    {} {} - {} {}'.format(string_date, d['status'], d[
+                'homeTeamName'], hg, ag, d['awayTeamName']))
