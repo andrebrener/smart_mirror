@@ -1,7 +1,8 @@
 import io
 import time
+import pickle
 
-from tkinter import BOTTOM, Frame, Label, LEFT, RIGHT, Tk, Y
+from tkinter import BOTTOM, Frame, Label, LEFT, RIGHT, Tk, Y, E
 from datetime import date
 from urllib.request import urlopen
 
@@ -10,64 +11,7 @@ import http.client
 
 from PIL import Image, ImageTk
 from weather_data import get_weather_info
-from football_results import get_teams_fixture
-
-league = 'Premier League'
-match = 'Arsenal 2 - 0 Manchester United'
-
-# Get Weather Data
-data_file = open('weather_api_key.txt', 'r')
-weather_key = data_file.read().strip()
-city = 'Ciudad Autónoma de Buenos Aires,ar'
-# weather = get_weather_info(weather_key, city)
-
-
-# Get football data
-data_file = open('football_api_key.txt', 'r')
-football_key = data_file.read().strip()
-connection = http.client.HTTPConnection('api.football-data.org')
-headers = {'X-Auth-Token': football_key, 'X-Response-Control': 'full'}
-
-leagues_df = pd.read_csv('preferred_leagues.csv')
-teams_df = pd.read_csv('preferred_teams.csv')
-team_names = teams_df['name'].unique()
-
-# football_df = get_teams_fixture(connection, headers, leagues_df, team_names)
-
-root = Tk()
-root.configure(background='black')
-
-# Build Frames
-weather_frame = Frame(root, background='black')
-time_frame = Frame(root, background='black')
-football_frame = Frame(root, background='black')
-
-# Generate Day
-day1 = ''
-calendar = Label(time_frame, fg='white', bg='black')
-calendar.pack()
-
-
-def update_day():
-    global day1
-    # get the current local time from the PC
-    day2 = date.today().strftime('%a, %b %d')
-    # if time string has changed, update it
-    if day2 != day1:
-        day1 = day2
-        calendar.configure(text=day2)
-    # calls itself every 200 milliseconds
-    # to update the time display as needed
-    # could use >200 ms, but display gets jerky
-    calendar.after(5000, update_day)
-
-
-update_day()
-
-# Generate Time
-time1 = ''
-clock = Label(time_frame, fg='white', bg='black')
-clock.pack()
+from football_results import get_football_data
 
 
 def update_time():
@@ -78,28 +22,23 @@ def update_time():
     if time2 != time1:
         time1 = time2
         clock.configure(text=time2)
-    # calls itself every 200 milliseconds
-    # to update the time display as needed
-    # could use >200 ms, but display gets jerky
-    clock.after(1000, update_time)
+
+    clock.after(900, update_time)
 
 
-update_time()
+def update_day():
+    global day1
+    global date1
+    # get the current local time from the PC
+    day2 = date.today().strftime('%A')
+    date_2 = date.today().strftime('%d %b, %Y')
+    # if time string has changed, update it
+    if day2 != day1:
+        day1 = day2
+        calendar.configure(text=day2)
+        date_label.configure(text=date_2)
 
-# Generate weather
-weather_dict_1 = {'status': '', 'temp': '', 'temp_max': '', 'temp_min': ''}
-url_1 = ''
-
-status_label = Label(weather_frame, fg='white', bg='black')
-temp_label = Label(weather_frame, fg='white', bg='black')
-max_temp_label = Label(weather_frame, fg='white', bg='black')
-min_temp_label = Label(weather_frame, fg='white', bg='black')
-icon_label = Label(weather_frame, bg='black')
-status_label.pack()
-temp_label.pack()
-max_temp_label.pack()
-min_temp_label.pack()
-icon_label.pack()
+    calendar.after(900, update_day)
 
 
 def update_weather():
@@ -113,14 +52,14 @@ def update_weather():
         url = 'http://i.imgur.com/o7gbio1.png'
     elif weather['status'].lower() == 'rain':
         url = 'http://i.imgur.com/V4UI3HB.png'
-    elif weather['status'].lower() == 'cloud':
+    else:
         url = 'http://i.imgur.com/vtM9cAF.png'
 
     weather_dict_2 = {
         'status': [weather['status'], status_label],
-        'temp': [int(weather['temp']), temp_label],
-        'temp_max': [int(weather['temp_max']), max_temp_label],
-        'temp_min': [int(weather['temp_min']), min_temp_label],
+        'temp': [weather['temp'], temp_label],
+        'temp_max': [weather['temp_max'], max_temp_label],
+        'temp_min': [weather['temp_min'], min_temp_label],
     }
     # if weather has changed, update it
     for key, val in weather_dict_2.items():
@@ -140,20 +79,104 @@ def update_weather():
         icon_label.configure(image=tk_image)
         icon_label.image = tk_image
 
-    # calls itself every 200 milliseconds
-    # to update the time display as needed
-    # could use >200 ms, but display gets jerky
-    status_label.after(4 * 10 ^ 6, update_weather)
+    status_label.after(10 ^ 7, update_weather)
 
 
-update_weather()
+def update_fixture():
+    global connection
+    global headers
+    global leagues
+    global team_names
+
+    with open('football_data.pkl', 'rb') as f:
+        games_list = pickle.load(f)
+    # games_list = get_football_data(connection, headers, leagues, team_names)
+    for i, game in enumerate(games_list):
+        for n, element in enumerate(game):
+            Label(
+                football_frame,
+                text=element,
+                fg='white',
+                bg='black',
+                font=("Helvetica")).grid(
+                    row=i, column=n)
+
+    football_frame.after(2000, update_fixture)
 
 
-league_label = Label(football_frame, text=league, fg='white').pack()
-match_label = Label(football_frame, text=match, fg='white').pack()
+if __name__ == '__main__':
 
-weather_frame.pack(side=LEFT, fill=Y)
-time_frame.pack(side=RIGHT, fill=Y)
-football_frame.pack(side=BOTTOM)
+    root = Tk()
+    root.configure(background='black')
+    # Build Frames
+    weather_frame = Frame(root, background='black')
+    time_frame = Frame(root, background='black')
+    football_frame = Frame(root, background='black')
 
-root.mainloop()
+    # Get Data from APIs
+
+    # Get Football Data
+    data_file = open('football_api_key.txt', 'r')
+    football_key = data_file.read().strip()
+    connection = http.client.HTTPConnection('api.football-data.org')
+    headers = {'X-Auth-Token': football_key, 'X-Response-Control': 'full'}
+
+    leagues = pd.read_csv('preferred_leagues.csv')
+    teams = pd.read_csv('preferred_teams.csv')
+    team_names = teams['name'].unique()
+
+    # Get Weather Data
+    data_file = open('weather_api_key.txt', 'r')
+    weather_key = data_file.read().strip()
+    city = 'Ciudad Autónoma de Buenos Aires,ar'
+
+    # Generate Data
+
+    # Generate Time
+    time1 = ''
+    clock = Label(time_frame, fg='white', bg='black', font=("Helvetica", 100))
+    clock.pack()
+
+    # Generate Day
+    day1 = ''
+    date_1 = ''
+    calendar = Label(
+        time_frame, fg='white', bg='black', font=("Helvetica", 60))
+    date_label = Label(
+        time_frame, fg='white', bg='black', font=("Helvetica", 60))
+    calendar.pack()
+    date_label.pack()
+
+    # Generate weather
+    weather_dict_1 = {'status': '', 'temp': '', 'temp_max': '', 'temp_min': ''}
+    url_1 = ''
+
+    status_label = Label(
+        weather_frame, fg='white', bg='black', font=("Helvetica", 55))
+    temp_label = Label(
+        weather_frame, fg='white', bg='black', font=("Helvetica", 170))
+    max_temp_label = Label(weather_frame, fg='white', bg='black',
+            font=("Helvetica", 50))
+    min_temp_label = Label(weather_frame, fg='white', bg='black',
+            font=("Helvetica", 50))
+    icon_label = Label(weather_frame, bg='black')
+    status_label.grid(row=3, column=1)
+    temp_label.grid(row=1, column=2, columnspan=2)
+    max_temp_label.grid(row=3, column=2, sticky=E)
+    min_temp_label.grid(row=3, column=3, sticky=E)
+    icon_label.grid(row=1, column=1)
+
+    # Update Data
+    update_time()
+    update_day()
+    update_weather()
+    update_fixture()
+
+    # Pack Frames
+    weather_frame.pack(side=LEFT, fill=Y)
+    time_frame.pack(side=RIGHT, fill=Y)
+    football_frame.pack(side=BOTTOM)
+    football_frame.place(relx=.27, rely=.55)
+
+    root.attributes("-fullscreen", True)
+    root.mainloop()

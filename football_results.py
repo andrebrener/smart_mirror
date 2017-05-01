@@ -2,10 +2,11 @@
 #          File: test.py
 #        Author: Andre Brener
 #       Created: 22 Apr 2017
-# Last Modified: 26 Apr 2017
+# Last Modified: 30 Apr 2017
 #   Description: description
 # =============================================================================
 import json
+import pickle
 
 from datetime import date, timedelta
 
@@ -59,6 +60,13 @@ def get_teams(connection, headers, comps):
         df.to_csv('preferred_teams_{}.csv'.format(comp), index=False)
 
 
+def tune_goals(goals):
+    if goals != '':
+        return str(int(goals))
+    else:
+        return ''
+
+
 def get_fixture(connection, headers, url, days_past=30, days_next=30):
 
     connection.request('GET', url, None, headers)
@@ -83,10 +91,11 @@ def get_fixture(connection, headers, url, days_past=30, days_next=30):
 
     today = date.today()
     df = df[(df['date'] >= today - timedelta(days_past)) &
-            (df['date'] <= today + timedelta(days_past))]
+            (df['date'] <= today + timedelta(days_next))]
 
     for col in ['away_goals', 'home_goals']:
-        df[col].fillna('-', inplace=True)
+        df[col].fillna('', inplace=True)
+        df[col] = df[col].apply(tune_goals)
 
     return df
 
@@ -97,13 +106,46 @@ def get_teams_fixture(connection, headers, comp_df, chosen_teams):
         comp_name = comp_df[comp_df['id'] == comp_id]['caption'].iloc[0]
         url = '/v1/competitions/{}/fixtures'.format(comp_id)
         fixture_df = get_fixture(
-            connection, headers, url, days_next=4, days_past=3)
+            connection, headers, url, days_next=4, days_past=1)
         fixture_df = fixture_df[(fixture_df['homeTeamName'].isin(
             chosen_teams)) | (fixture_df['awayTeamName'].isin(chosen_teams))]
         fixture_df['competition'] = comp_name
         df_list.append(fixture_df)
     final_df = pd.concat(df_list)
+    final_df.sort_values(['date', 'competition'], ascending=True, inplace=True)
+    final_df.reset_index(inplace=True)
+    final_df['day'] = final_df['date'].dt.strftime('%a, %b %d')
+    final_df['time'] = final_df['date'].dt.strftime('%H:%M')
     return final_df
+
+
+def get_final_dict(df):
+    dates_dict = {}
+    for d in df['day'].unique():
+        grp_df = df[df['day'] == d]
+        games_list = get_games_list(grp_df)
+        dates_dict[d] = games_list
+
+    return dates_dict
+
+
+def get_games_list(df):
+    games_list = []
+    for row in range(df.shape[0]):
+        i = df.iloc[row]
+        game_data = (i['day'], i['time'], i['competition'], i['homeTeamName'],
+                     i['home_goals'], '-', i['away_goals'], i['awayTeamName'],
+                     i['status'])
+        games_list.append(game_data)
+    return games_list
+
+
+def get_football_data(connection, headers, leagues, team_names):
+
+    fixtures = get_teams_fixture(connection, headers, leagues, team_names)
+    games_list = get_games_list(fixtures)
+
+    return games_list
 
 
 if __name__ == '__main__':
@@ -118,18 +160,9 @@ if __name__ == '__main__':
     team_names = teams['name'].unique()
 
     # print(fixtures)
-    fixtures = get_teams_fixture(connection, headers, leagues, team_names)
+    games_list = get_football_data(connection, headers, leagues, team_names)
+    # for g in games_list:
+    # print(g)
 
-    for comp_name in fixtures['competition'].unique():
-        print('\n', comp_name, '\n')
-        filter_df = fixtures[fixtures['competition'] == comp_name]
-        for row in range(filter_df.shape[0]):
-            d = filter_df.iloc[row]
-            string_date = d['date'].strftime('%a, %b %d  %H.%M hs')
-            hg = ''
-            ag = ''
-            if d['away_goals'] != '-':
-                hg = int(d['home_goals'])
-                ag = int(d['away_goals'])
-            print('{}  {}    {} {} - {} {}'.format(string_date, d['status'], d[
-                'homeTeamName'], hg, ag, d['awayTeamName']))
+    with open('football_data.pkl', 'wb') as f:
+        pickle.dump(games_list, f)
