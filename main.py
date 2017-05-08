@@ -2,16 +2,12 @@ import io
 import time
 import pickle
 
-from tkinter import BOTTOM, Frame, Label, LEFT, RIGHT, Tk, Y, E
+from tkinter import BOTTOM, Frame, Label, LEFT, N, NE, NW, RIGHT, Tk, W
 from datetime import date
 from urllib.request import urlopen
 
-import pandas as pd
-import http.client
-
 from PIL import Image, ImageTk
 from weather_data import get_weather_info
-from football_results import get_football_data
 
 
 def update_time():
@@ -41,13 +37,31 @@ def update_day():
     calendar.after(900, update_day)
 
 
+def update_prices():
+
+    with open('prices_data.pkl', 'rb') as f:
+        prices = pickle.load(f)
+
+    for i, coin in enumerate(prices):
+        for n, element in enumerate(coin):
+            Label(
+                prices_frame,
+                text=element,
+                fg='white',
+                bg='black',
+                font=("Helvetica", 30)).grid(
+                    row=i, column=n, sticky=W)
+
+    prices_frame.after(10 ^ 6, update_prices)
+
+
 def update_weather():
     global weather_dict_1
     global url_1
     global weather_key
-    global city
+    global city_id
     # get the current local weather
-    weather = get_weather_info(weather_key, city)
+    weather = get_weather_info(weather_key, city_id)
     if weather['status'].lower() == 'clear':
         url = 'http://i.imgur.com/o7gbio1.png'
     elif weather['status'].lower() == 'rain':
@@ -56,10 +70,8 @@ def update_weather():
         url = 'http://i.imgur.com/vtM9cAF.png'
 
     weather_dict_2 = {
-        'status': [weather['status'], status_label],
-        'temp': [weather['temp'], temp_label],
-        'temp_max': [weather['temp_max'], max_temp_label],
-        'temp_min': [weather['temp_min'], min_temp_label],
+        # 'status': [weather['status'], status_label],
+        'temp': [weather['temp'], temp_label]
     }
     # if weather has changed, update it
     for key, val in weather_dict_2.items():
@@ -79,7 +91,7 @@ def update_weather():
         icon_label.configure(image=tk_image)
         icon_label.image = tk_image
 
-    status_label.after(10 ^ 7, update_weather)
+    temp_label.after(10 ^ 6, update_weather)
 
 
 def update_fixture():
@@ -109,26 +121,18 @@ if __name__ == '__main__':
     root = Tk()
     root.configure(background='black')
     # Build Frames
-    weather_frame = Frame(root, background='black')
+    main_frame = Frame(root, background='black')
+    weather_frame = Frame(main_frame, background='black')
+    prices_frame = Frame(main_frame, background='black')
     time_frame = Frame(root, background='black')
     football_frame = Frame(root, background='black')
 
     # Get Data from APIs
 
-    # Get Football Data
-    data_file = open('football_api_key.txt', 'r')
-    football_key = data_file.read().strip()
-    connection = http.client.HTTPConnection('api.football-data.org')
-    headers = {'X-Auth-Token': football_key, 'X-Response-Control': 'full'}
-
-    leagues = pd.read_csv('preferred_leagues.csv')
-    teams = pd.read_csv('preferred_teams.csv')
-    team_names = teams['name'].unique()
-
     # Get Weather Data
     data_file = open('weather_api_key.txt', 'r')
     weather_key = data_file.read().strip()
-    city = 'Ciudad Autónoma de Buenos Aires,ar'
+    city_id = 3433955
 
     # Generate Data
 
@@ -148,22 +152,21 @@ if __name__ == '__main__':
     date_label.pack()
 
     # Generate weather
-    weather_dict_1 = {'status': '', 'temp': '', 'temp_max': '', 'temp_min': ''}
+
+    # weather_dict_1 = {'status': '', 'temp': '', 'temp_max': '', 'temp_min': ''}
+    weather_dict_1 = {'temp': ''}
     url_1 = ''
 
-    status_label = Label(
-        weather_frame, fg='white', bg='black', font=("Helvetica", 55))
+    # status_label = Label(
+    # weather_frame, fg='white', bg='black', font=("Helvetica", 55))
     temp_label = Label(
         weather_frame, fg='white', bg='black', font=("Helvetica", 170))
-    max_temp_label = Label(weather_frame, fg='white', bg='black',
-            font=("Helvetica", 50))
-    min_temp_label = Label(weather_frame, fg='white', bg='black',
-            font=("Helvetica", 50))
+
     icon_label = Label(weather_frame, bg='black')
-    status_label.grid(row=3, column=1)
+    # status_label.grid(row=3, column=1)
     temp_label.grid(row=1, column=2, columnspan=2)
-    max_temp_label.grid(row=3, column=2, sticky=E)
-    min_temp_label.grid(row=3, column=3, sticky=E)
+    # max_temp_label.grid(row=3, column=2, sticky=W)
+    # min_temp_label.grid(row=3, column=3)
     icon_label.grid(row=1, column=1)
 
     # Update Data
@@ -171,12 +174,15 @@ if __name__ == '__main__':
     update_day()
     update_weather()
     update_fixture()
+    update_prices()
 
     # Pack Frames
-    weather_frame.pack(side=LEFT, fill=Y)
-    time_frame.pack(side=RIGHT, fill=Y)
+    weather_frame.grid(row=0, sticky=N)
+    prices_frame.grid(row=1)
+
+    time_frame.pack(side=RIGHT, anchor=NE)
+    main_frame.pack(side=LEFT, anchor=NW)
     football_frame.pack(side=BOTTOM)
-    football_frame.place(relx=.27, rely=.55)
 
     root.attributes("-fullscreen", True)
     root.mainloop()

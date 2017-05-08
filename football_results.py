@@ -2,7 +2,7 @@
 #          File: test.py
 #        Author: Andre Brener
 #       Created: 22 Apr 2017
-# Last Modified: 30 Apr 2017
+# Last Modified: 06 May 2017
 #   Description: description
 # =============================================================================
 import json
@@ -67,6 +67,17 @@ def tune_goals(goals):
         return ''
 
 
+def rename_game_status(status):
+    if status.lower() == 'finished':
+        return 'FT'
+    elif status.lower() == 'in_play':
+        return 'LIVE'
+    elif status.lower() == 'timed':
+        return ''
+    else:
+        return status
+
+
 def get_fixture(connection, headers, url, days_past=30, days_next=30):
 
     connection.request('GET', url, None, headers)
@@ -116,6 +127,7 @@ def get_teams_fixture(connection, headers, comp_df, chosen_teams):
     final_df.reset_index(inplace=True)
     final_df['day'] = final_df['date'].dt.strftime('%a, %b %d')
     final_df['time'] = final_df['date'].dt.strftime('%H:%M')
+    final_df['status'] = final_df['status'].apply(rename_game_status)
     return final_df
 
 
