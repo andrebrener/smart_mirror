@@ -176,14 +176,14 @@ if __name__ == '__main__':
 
     # Pack Frames
 
-    weather_frame.grid(row=0, sticky='n')
-    prices_frame.grid(row=1, sticky='sw')
+    weather_frame.grid(row=0, sticky='n', pady=30, padx=30)
+    prices_frame.grid(row=1, sticky='sw', pady=20, padx=30)
 
     root.grid_rowconfigure(0, weight=1)
     root.grid_columnconfigure(0, weight=1)
 
     top_left_frame.grid(row=0, column=0, columnspan=2, sticky='nw')
-    time_frame.grid(row=0, column=2, sticky='nsew')
+    time_frame.grid(row=0, column=2, sticky='nsew', padx=30, pady=30)
     football_frame.grid(row=1, column=1, columnspan=1, sticky='ew')
 
     root.attributes("-fullscreen", True)
