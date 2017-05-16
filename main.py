@@ -2,7 +2,7 @@ import io
 import time
 import pickle
 
-from tkinter import BOTTOM, Frame, Label, LEFT, N, NE, NW, RIGHT, Tk, W
+from tkinter import Frame, Label, Tk
 from datetime import date
 from urllib.request import urlopen
 
@@ -50,7 +50,7 @@ def update_prices():
                 fg='white',
                 bg='black',
                 font=("Helvetica", 30)).grid(
-                    row=i, column=n, sticky=W)
+                    row=i, column=n, sticky='w')
 
     prices_frame.after(10 ^ 6, update_prices)
 
@@ -62,12 +62,8 @@ def update_weather():
     global city_id
     # get the current local weather
     weather = get_weather_info(weather_key, city_id)
-    if weather['status'].lower() == 'clear':
-        url = 'http://i.imgur.com/o7gbio1.png'
-    elif weather['status'].lower() == 'rain':
-        url = 'http://i.imgur.com/V4UI3HB.png'
-    else:
-        url = 'http://i.imgur.com/vtM9cAF.png'
+
+    url_image = weather['url']
 
     weather_dict_2 = {
         # 'status': [weather['status'], status_label],
@@ -77,16 +73,18 @@ def update_weather():
     for key, val in weather_dict_2.items():
         if val[0] != weather_dict_1[key]:
             val[1].configure(text=val[0])
-    if url != url_1:
-        url_1 = url
-        image_bytes = urlopen(url).read()
+    if url_image != url_1:
+        url_1 = url_image
+        image_bytes = urlopen(url_image).read()
         # internal data file
         data_stream = io.BytesIO(image_bytes)
         # open as a PIL image object
         pil_image = Image.open(data_stream)
         # data_stream the size of the image
-        w, h = pil_image.size
+        # w, h = pil_image.size
+        im_size = (200, 200)
         # convert PIL image object to Tkinter PhotoImage object
+        pil_image = pil_image.resize(im_size, Image.ANTIALIAS)
         tk_image = ImageTk.PhotoImage(pil_image)
         icon_label.configure(image=tk_image)
         icon_label.image = tk_image
@@ -110,7 +108,7 @@ def update_fixture():
                 text=element,
                 fg='white',
                 bg='black',
-                font=("Helvetica")).grid(
+                font=('Helvetica')).grid(
                     row=i, column=n)
 
     football_frame.after(2000, update_fixture)
@@ -121,9 +119,9 @@ if __name__ == '__main__':
     root = Tk()
     root.configure(background='black')
     # Build Frames
-    main_frame = Frame(root, background='black')
-    weather_frame = Frame(main_frame, background='black')
-    prices_frame = Frame(main_frame, background='black')
+    top_left_frame = Frame(root, background='black')
+    weather_frame = Frame(top_left_frame, background='black')
+    prices_frame = Frame(top_left_frame, background='black')
     time_frame = Frame(root, background='black')
     football_frame = Frame(root, background='black')
 
@@ -138,16 +136,16 @@ if __name__ == '__main__':
 
     # Generate Time
     time1 = ''
-    clock = Label(time_frame, fg='white', bg='black', font=("Helvetica", 100))
+    clock = Label(time_frame, fg='white', bg='black', font=('Helvetica', 100))
     clock.pack()
 
     # Generate Day
     day1 = ''
     date_1 = ''
     calendar = Label(
-        time_frame, fg='white', bg='black', font=("Helvetica", 60))
+        time_frame, fg='white', bg='black', font=('Helvetica', 60))
     date_label = Label(
-        time_frame, fg='white', bg='black', font=("Helvetica", 60))
+        time_frame, fg='white', bg='black', font=('Helvetica', 60))
     calendar.pack()
     date_label.pack()
 
@@ -160,7 +158,7 @@ if __name__ == '__main__':
     # status_label = Label(
     # weather_frame, fg='white', bg='black', font=("Helvetica", 55))
     temp_label = Label(
-        weather_frame, fg='white', bg='black', font=("Helvetica", 170))
+        weather_frame, fg='white', bg='black', font=('Helvetica', 170))
 
     icon_label = Label(weather_frame, bg='black')
     # status_label.grid(row=3, column=1)
@@ -177,12 +175,16 @@ if __name__ == '__main__':
     update_prices()
 
     # Pack Frames
-    weather_frame.grid(row=0, sticky=N)
-    prices_frame.grid(row=1)
 
-    time_frame.pack(side=RIGHT, anchor=NE)
-    main_frame.pack(side=LEFT, anchor=NW)
-    football_frame.pack(side=BOTTOM)
+    weather_frame.grid(row=0, sticky='n')
+    prices_frame.grid(row=1, sticky='sw')
+
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_columnconfigure(0, weight=1)
+
+    top_left_frame.grid(row=0, column=0, columnspan=2, sticky='nw')
+    time_frame.grid(row=0, column=2, sticky='nsew')
+    football_frame.grid(row=1, column=1, columnspan=1, sticky='ew')
 
     root.attributes("-fullscreen", True)
     root.mainloop()

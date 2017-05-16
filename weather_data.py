@@ -1,5 +1,17 @@
 import pyowm
 
+images_dict = {
+    'clear': 'http://i.imgur.com/PaFjwVA.jpg',
+    'rain': 'http://i.imgur.com/77EPHDJ.jpg',
+    'snow': 'http://i.imgur.com/FB19CJM.jpg',
+    'drizzle': 'http://i.imgur.com/FB19CJM.jpg',
+    'thunderstorm': 'http://i.imgur.com/DNxm5nn.jpg',
+    'clouds': 'http://i.imgur.com/EMHPJx9.jpg',
+    'dust': 'http://i.imgur.com/EMHPJx9.jpg',
+    'fog': 'http://i.imgur.com/EMHPJx9.jpg',
+    'smoke': 'http://i.imgur.com/EMHPJx9.jpg'
+}
+
 
 def get_weather_info(key, city_id):
     owm = pyowm.OWM(key)
@@ -12,7 +24,9 @@ def get_weather_info(key, city_id):
 
     for key, val in w.get_temperature('celsius').items():
         if key != 'temp_kf':
-            weather_dict[key] = '{} °'.format(int(val))
+            weather_dict[key] = '{}°'.format(int(val))
+
+    weather_dict['url'] = images_dict[weather_dict['status'].lower()]
 
     return weather_dict
 
@@ -40,6 +54,3 @@ if __name__ == '__main__':
     unique_status = set(status_list)
 
     print(unique_status)
-
-
-    
