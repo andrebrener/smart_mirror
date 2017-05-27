@@ -2,16 +2,22 @@
 #          File: test.py
 #        Author: Andre Brener
 #       Created: 22 Apr 2017
-# Last Modified: 06 May 2017
+# Last Modified: 27 May 2017
 #   Description: description
 # =============================================================================
 import json
 import pickle
+import logging
+import logging.config
 
 from datetime import date, timedelta
 
 import pandas as pd
 import http.client
+
+from config import config
+
+logger = logging.getLogger('main_logger')
 
 
 def get_competition(link):
@@ -116,8 +122,15 @@ def get_teams_fixture(connection, headers, comp_df, chosen_teams):
     for comp_id in comp_df['id'].unique():
         comp_name = comp_df[comp_df['id'] == comp_id]['caption'].iloc[0]
         url = '/v1/competitions/{}/fixtures'.format(comp_id)
-        fixture_df = get_fixture(
-            connection, headers, url, days_next=4, days_past=1)
+        try:
+            fixture_df = get_fixture(
+                connection, headers, url, days_next=4, days_past=1)
+            logger.info("Got Data for {}".format(comp_name))
+
+        except Exception as e:
+            logger.error(str(e))
+            raise
+
         fixture_df = fixture_df[(fixture_df['homeTeamName'].isin(
             chosen_teams)) | (fixture_df['awayTeamName'].isin(chosen_teams))]
         fixture_df['competition'] = comp_name
@@ -160,7 +173,15 @@ def get_football_data(connection, headers, leagues, team_names):
     return games_list
 
 
+def save_games(games_list, file_name='football_data.pkl'):
+    with open(file_name, 'wb') as f:
+        pickle.dump(games_list, f)
+    logger.info("File Saved as {}".format(file_name))
+
+
 if __name__ == '__main__':
+
+    logging.config.dictConfig(config['logger'])
 
     data_file = open('football_api_key.txt', 'r')
     key = data_file.read().strip()
@@ -171,10 +192,6 @@ if __name__ == '__main__':
     teams = pd.read_csv('preferred_teams.csv')
     team_names = teams['name'].unique()
 
-    # print(fixtures)
     games_list = get_football_data(connection, headers, leagues, team_names)
-    # for g in games_list:
-    # print(g)
 
-    with open('football_data.pkl', 'wb') as f:
-        pickle.dump(games_list, f)
+    save_games(games_list)
