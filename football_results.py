@@ -5,6 +5,7 @@
 # Last Modified: 27 May 2017
 #   Description: description
 # =============================================================================
+import os
 import json
 import pickle
 import logging
@@ -15,7 +16,9 @@ from datetime import date, timedelta
 import pandas as pd
 import http.client
 
-from config import config
+from config import config, PROJECT_DIR
+
+os.chdir(PROJECT_DIR)
 
 logger = logging.getLogger('main_logger')
 
