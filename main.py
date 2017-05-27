@@ -11,13 +11,13 @@ from weather_data import get_weather_info
 
 
 def update_time():
-    global time1
+    global TIME
     # get the current local time from the PC
-    time2 = time.strftime('%H:%M')
+    current_time = time.strftime('%H:%M')
     # if time string has changed, update it
-    if time2 != time1:
-        time1 = time2
-        clock.configure(text=time2)
+    if current_time != TIME:
+        TIME = current_time
+        clock.configure(text=current_time)
 
     clock.after(900, update_time)
 
@@ -38,43 +38,46 @@ def update_day():
 
 
 def update_prices():
+    global PRICES
 
     with open('prices_data.pkl', 'rb') as f:
         prices = pickle.load(f)
 
-    for i, coin in enumerate(prices):
-        for n, element in enumerate(coin):
-            Label(
-                prices_frame,
-                text=element,
-                fg='white',
-                bg='black',
-                font=("Helvetica", 30)).grid(
-                    row=i, column=n, sticky='w')
+    if prices != PRICES:
+        PRICES = prices
+        for i, coin in enumerate(prices):
+            for n, element in enumerate(coin):
+                Label(
+                    prices_frame,
+                    text=element,
+                    fg='white',
+                    bg='black',
+                    font=("Helvetica", 30)).grid(
+                        row=i, column=n, sticky='w')
 
     prices_frame.after(10 ^ 6, update_prices)
 
 
 def update_weather():
-    global weather_dict_1
-    global url_1
-    global weather_key
-    global city_id
+    global WEATHER_DICT
+    global WEATHER_URL
+    global WEATHER_KEY
+    global CITY_ID
     # get the current local weather
-    weather = get_weather_info(weather_key, city_id)
+    weather = get_weather_info(WEATHER_KEY, CITY_ID)
 
     url_image = weather['url']
 
-    weather_dict_2 = {
+    current_weather = {
         # 'status': [weather['status'], status_label],
         'temp': [weather['temp'], temp_label]
     }
     # if weather has changed, update it
-    for key, val in weather_dict_2.items():
-        if val[0] != weather_dict_1[key]:
+    for key, val in current_weather.items():
+        if val[0] != WEATHER_DICT[key]:
             val[1].configure(text=val[0])
-    if url_image != url_1:
-        url_1 = url_image
+    if url_image != WEATHER_URL:
+        WEATHER_URL = url_image
         image_bytes = urlopen(url_image).read()
         # internal data file
         data_stream = io.BytesIO(image_bytes)
@@ -93,25 +96,23 @@ def update_weather():
 
 
 def update_fixture():
-    global connection
-    global headers
-    global leagues
-    global team_names
+    global GAMES_LIST
 
     with open('football_data.pkl', 'rb') as f:
         games_list = pickle.load(f)
-    # games_list = get_football_data(connection, headers, leagues, team_names)
-    for i, game in enumerate(games_list):
-        for n, element in enumerate(game):
-            Label(
-                football_frame,
-                text=element,
-                fg='white',
-                bg='black',
-                font=('Helvetica')).grid(
-                    row=i, column=n)
+    if games_list != GAMES_LIST:
+        GAMES_LIST = games_list
+        for i, game in enumerate(games_list):
+            for n, element in enumerate(game):
+                Label(
+                    football_frame,
+                    text=element,
+                    fg='white',
+                    bg='black',
+                    font=('Helvetica')).grid(
+                        row=i, column=n)
 
-    football_frame.after(2000, update_fixture)
+    football_frame.after(10 ^ 6, update_fixture)
 
 
 if __name__ == '__main__':
@@ -129,13 +130,17 @@ if __name__ == '__main__':
 
     # Get Weather Data
     data_file = open('weather_api_key.txt', 'r')
-    weather_key = data_file.read().strip()
-    city_id = 3433955
+    WEATHER_KEY = data_file.read().strip()
+    CITY_ID = 3433955
 
     # Generate Data
 
+    # Generate Pickle Global Data
+    GAMES_LIST = []
+    PRICES = []
+
     # Generate Time
-    time1 = ''
+    TIME = ''
     clock = Label(time_frame, fg='white', bg='black', font=('Helvetica', 100))
     clock.pack()
 
@@ -151,9 +156,9 @@ if __name__ == '__main__':
 
     # Generate weather
 
-    # weather_dict_1 = {'status': '', 'temp': '', 'temp_max': '', 'temp_min': ''}
-    weather_dict_1 = {'temp': ''}
-    url_1 = ''
+    # WEATHER_DICT = {'status': '', 'temp': '', 'temp_max': '', 'temp_min': ''}
+    WEATHER_DICT = {'temp': ''}
+    WEATHER_URL = ''
 
     # status_label = Label(
     # weather_frame, fg='white', bg='black', font=("Helvetica", 55))
@@ -184,7 +189,7 @@ if __name__ == '__main__':
 
     top_left_frame.grid(row=0, column=0, columnspan=2, sticky='nw')
     time_frame.grid(row=0, column=2, sticky='nsew', padx=30, pady=30)
-    football_frame.grid(row=1, column=1, columnspan=1, sticky='ew')
+    football_frame.grid(row=1, column=1, columnspan=1, sticky='ew', pady=20)
 
     root.attributes("-fullscreen", True)
     root.mainloop()
