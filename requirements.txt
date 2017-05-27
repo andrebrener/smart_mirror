@@ -2,4 +2,4 @@ cython
 numpy
 pandas
 pyowm
-ImageTK
+Pillow==3.1.2
