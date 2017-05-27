@@ -2,3 +2,4 @@ cython
 numpy
 pandas
 pyowm
+ImageTK
