@@ -29,7 +29,7 @@ logger:
             class: logging.handlers.RotatingFileHandler
             level: INFO
             formatter: standard
-            filename: football_results.log
+            filename: crons.log
             maxBytes: 20971520  # (20 MB)
             backupCount: 9
             encoding: utf8

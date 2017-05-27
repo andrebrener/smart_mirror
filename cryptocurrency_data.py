@@ -2,53 +2,42 @@
 #          File: cryptocurrency_data.py
 #        Author: Andre Brener
 #       Created: 05 May 2017
-# Last Modified: 09 May 2017
+# Last Modified: 27 May 2017
 #   Description: description
 # =============================================================================
 import json
 import pickle
+import logging
+import logging.config
 
 from operator import itemgetter
 
 import requests
 
+from config import config
 
-def get_price_one_by_one(coin_list):
-    price_dict = {}
-    for l in coin_list:
-        print(l)
-        url = 'https://min-api.cryptocompare.com/data/price?fsym={}&tsym=USD'.format(
-            l)
-        response_text = requests.get(url).text
-        d = json.loads(response_text)
-
-        if 'Response' not in d.keys():
-            for coin, val in d.items():
-                price_dict[coin] = val['USD']
-    return price_dict
+logger = logging.getLogger('main_logger')
 
 
-def get_price_all_together(coin_list):
+def get_prices(coin_list):
 
     coin_list_string = ','.join(coin_list)
     price_now_url = 'https://min-api.cryptocompare.com/data/pricemulti?fsyms={}&tsyms=USD'.format(
         coin_list_string)
 
-    response_text = requests.get(price_now_url).text
+    try:
+        response_text = requests.get(price_now_url).text
+        logger.info("Got Coin Data")
+
+    except Exception as e:
+        logger.error(str(e))
+        raise
+
     d = json.loads(response_text)
 
     price_dict = {}
     for coin, val in d.items():
         price_dict[coin] = val['USD']
-
-    return price_dict
-
-
-def get_coin_price(coin_list, all_together=True):
-    if all_together:
-        price_dict = get_price_all_together(coin_list)
-    else:
-        price_dict = get_price_one_by_one(coin_list)
 
     price_dict = sorted(price_dict.items(), key=itemgetter(1), reverse=True)
 
@@ -69,8 +58,9 @@ def save_pickle(price_dict):
 
 if __name__ == '__main__':
     # coin_list = get_coin_list()
+    logging.config.dictConfig(config['logger'])
 
     coin_list = ['ETH', 'BTC']
 
-    price_dict = get_coin_price(coin_list, True)
+    price_dict = get_prices(coin_list)
     save_pickle(price_dict)
