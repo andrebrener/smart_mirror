@@ -2,7 +2,7 @@
 #          File: test.py
 #        Author: Andre Brener
 #       Created: 22 Apr 2017
-# Last Modified: 27 May 2017
+# Last Modified: 01 Jun 2017
 #   Description: description
 # =============================================================================
 import os
@@ -128,6 +128,8 @@ def get_teams_fixture(connection, headers, comp_df, chosen_teams):
         try:
             fixture_df = get_fixture(
                 connection, headers, url, days_next=4, days_past=1)
+            if fixture_df.empty:
+                continue
             logger.info("Got Data for {}".format(comp_name))
 
         except Exception as e:

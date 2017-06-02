@@ -9,7 +9,8 @@ images_dict = {
     'clouds': 'http://i.imgur.com/EMHPJx9.jpg',
     'dust': 'http://i.imgur.com/EMHPJx9.jpg',
     'fog': 'http://i.imgur.com/EMHPJx9.jpg',
-    'smoke': 'http://i.imgur.com/EMHPJx9.jpg'
+    'smoke': 'http://i.imgur.com/EMHPJx9.jpg',
+    'mist': 'http://i.imgur.com/EMHPJx9.jpg'
 }
 
 
