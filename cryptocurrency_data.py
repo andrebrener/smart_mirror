@@ -2,7 +2,7 @@
 #          File: cryptocurrency_data.py
 #        Author: Andre Brener
 #       Created: 05 May 2017
-# Last Modified: 27 May 2017
+# Last Modified: 22 Aug 2017
 #   Description: description
 # =============================================================================
 import os
@@ -16,15 +16,16 @@ from operator import itemgetter
 import requests
 
 from config import config, PROJECT_DIR
+from constants import COIN_LIST
 
 os.chdir(PROJECT_DIR)
 
 logger = logging.getLogger('main_logger')
 
 
-def get_prices(coin_list):
+def get_prices():
 
-    coin_list_string = ','.join(coin_list)
+    coin_list_string = ','.join(COIN_LIST)
     price_now_url = 'https://min-api.cryptocompare.com/data/pricemulti?fsyms={}&tsyms=USD'.format(
         coin_list_string)
 
@@ -60,10 +61,7 @@ def save_pickle(price_dict):
 
 
 if __name__ == '__main__':
-    # coin_list = get_coin_list()
     logging.config.dictConfig(config['logger'])
 
-    coin_list = ['ETH', 'BTC']
-
-    price_dict = get_prices(coin_list)
+    price_dict = get_prices()
     save_pickle(price_dict)

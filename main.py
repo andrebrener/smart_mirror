@@ -7,6 +7,7 @@ from datetime import date
 from urllib.request import urlopen
 
 from PIL import Image, ImageTk
+from constants import CITY_ID
 from weather_data import get_weather_info
 
 
@@ -131,7 +132,6 @@ if __name__ == '__main__':
     # Get Weather Data
     data_file = open('weather_api_key.txt', 'r')
     WEATHER_KEY = data_file.read().strip()
-    CITY_ID = 3433955
 
     # Generate Data
 
