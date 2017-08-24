@@ -7,7 +7,7 @@ The code is written and intended to use with Python 3.
 
 ### 1. Clone Repo
 
-`git clone https://github.com/andrebrener/football_data.git`
+`git clone https://github.com/andrebrener/smart_mirror.git`
 
 ### 2. Install Packages Required
 
