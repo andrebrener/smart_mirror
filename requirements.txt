@@ -1,5 +1,6 @@
-cython
 numpy
 pandas
-pyowm
-pyyaml
+Pillow
+pyowm<3
+PyYAML
+requests
