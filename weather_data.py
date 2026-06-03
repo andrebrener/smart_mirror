@@ -18,7 +18,6 @@ def get_weather_info(key, city_id):
     owm = pyowm.OWM(key)
 
     observation = owm.weather_at_id(city_id)
-    # observation = owm.weather_at_place('London,uk')
     w = observation.get_weather()
 
     weather_dict = {'status': w.get_status()}

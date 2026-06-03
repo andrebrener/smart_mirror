@@ -1,9 +1,9 @@
 # =============================================================================
-#          File: test.py
+#          File: football_results.py
 #        Author: Andre Brener
 #       Created: 22 Apr 2017
-# Last Modified: 01 Jun 2017
-#   Description: description
+#   Description: Fetch upcoming football fixtures for preferred leagues/teams
+#                and pickle them for the smart mirror UI to display.
 # =============================================================================
 import os
 import json

@@ -2,8 +2,8 @@
 #          File: config.py
 #        Author: Andre Brener
 #       Created: 27 May 2017
-# Last Modified: 27 May 2017
-#   Description: description
+#   Description: Load logging configuration from config.yaml and expose the
+#                project directory.
 # =============================================================================
 import os
 

@@ -2,8 +2,8 @@
 #          File: cryptocurrency_data.py
 #        Author: Andre Brener
 #       Created: 05 May 2017
-# Last Modified: 22 Aug 2017
-#   Description: description
+#   Description: Fetch current cryptocurrency prices and pickle them for the
+#                smart mirror UI to display.
 # =============================================================================
 import os
 import json
