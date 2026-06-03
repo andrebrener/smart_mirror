@@ -1,0 +1,23 @@
+# API keys (read at runtime, must never be committed)
+weather_api_key.txt
+football_api_key.txt
+
+# Generated data exchanged between the cron scripts and the UI
+*.pkl
+
+# Logs
+crons.log
+crons.log.*
+
+# Large OpenWeatherMap city dump (see README for how to fetch it)
+city_list.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.Python
+build/
+dist/
+venv/
+.venv/
