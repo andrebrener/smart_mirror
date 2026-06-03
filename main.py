@@ -9,7 +9,7 @@ from urllib.request import urlopen
 
 from PIL import Image, ImageTk
 from constants import CITY_ID
-from weather_data import get_weather_info
+from widgets.weather_data import get_weather_info
 
 # Refresh intervals in milliseconds.
 REFRESH_INTERVAL_MS = 10 * 60 * 1000  # 10 minutes

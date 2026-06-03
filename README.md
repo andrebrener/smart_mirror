@@ -22,19 +22,19 @@ The API keys must be saved with the names `weather_api_key.txt` and `football_ap
 
 ### 4. Generate the data, then run
 
-The clock and weather widgets read live data, but the **cryptocurrency** and **football** widgets read from pickle files (`prices_data.pkl` and `football_data.pkl`) produced by the data scripts. Run those scripts **before** (and periodically alongside) the UI, otherwise those two widgets stay empty:
+The clock and weather widgets read live data, but the **cryptocurrency** and **football** widgets read from pickle files (`prices_data.pkl` and `football_data.pkl`) produced by the data scripts. The data scripts live in the `widgets/` package — run them **as modules from the project root** (`python3 -m widgets.<name>`) so their imports resolve. Run them **before** (and periodically alongside) the UI, otherwise those two widgets stay empty:
 
 ```
-python3 cryptocurrency_data.py
-python3 football_results.py
+python3 -m widgets.cryptocurrency_data
+python3 -m widgets.football_results
 python3 main.py
 ```
 
 On a Raspberry Pi the two data scripts are intended to be run on a schedule with cron, e.g.:
 
 ```
-*/10 * * * * cd /path/to/smart_mirror && python3 cryptocurrency_data.py
-*/10 * * * * cd /path/to/smart_mirror && python3 football_results.py
+*/10 * * * * cd /path/to/smart_mirror && python3 -m widgets.cryptocurrency_data
+*/10 * * * * cd /path/to/smart_mirror && python3 -m widgets.football_results
 ```
 
 ## What Widgets are there?
@@ -63,8 +63,8 @@ Define the list of coins in `constants.py` that you would like to see.
 
 This project dates from 2017 and some external dependencies have since changed in ways that break the original code paths. These are documented rather than fixed here, because reviving them is a substantial rewrite:
 
-- **Weather (pyowm):** `weather_data.py` uses the pyowm **v2** API (`pyowm.OWM(key).weather_at_id(...).get_weather()`), which was removed in pyowm v3. `requirements.txt` therefore pins `pyowm<3`. Migrating to pyowm v3 would require rewriting `get_weather_info`.
-- **Football fixtures (football-data.org):** `football_results.py` calls the **v1** API over plain HTTP. v1 has been decommissioned; the current API is **v4** over HTTPS with a different JSON shape. The fixture pipeline needs a rewrite against v4 to work again.
+- **Weather (pyowm):** `widgets/weather_data.py` uses the pyowm **v2** API (`pyowm.OWM(key).weather_at_id(...).get_weather()`), which was removed in pyowm v3. `requirements.txt` therefore pins `pyowm<3`. Migrating to pyowm v3 would require rewriting `get_weather_info`.
+- **Football fixtures (football-data.org):** `widgets/football_results.py` calls the **v1** API over plain HTTP. v1 has been decommissioned; the current API is **v4** over HTTPS with a different JSON shape. The fixture pipeline needs a rewrite against v4 to work again.
 - **Weather icons** are served from `http://i.imgur.com/...` over plain HTTP.
 
 ## License
